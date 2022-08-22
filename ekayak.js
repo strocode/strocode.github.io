@@ -1,26 +1,45 @@
 'use strict'
 
-const loc = {
-    hostname: "freya.bannister.id.au",
-    port:9001
-
+let loc = {
+    hostname: "www.bannister.id.au",
+    port:443,
+    useSSL:true
 };
+
+//loc = {hostname:'freya.bannister.id.au',port:9001,useSSL:false};
+
+
 
 // Create a client instance
 let client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), "clientId");
+let statusText = document.getElementById("status");
+
+function setStatus(msg) {
+  statusText.innerText = msg;
+  console.log("Status changed:", msg);
+}
+
 
 // set callback handlers
 client.onConnectionLost = onConnectionLost;
 client.onMessageArrived = onMessageArrived;
 
-// connect the client
-
-
 function login() {
   let username = document.getElementById("username").value;
   let password = document.getElementById("password").value;
+  // For more options, see here: https://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
+  let options = {
+    timeout:3,
+    userName:username,
+    password:password,
+    onSuccess:onConnect,
+    onFailure:onConnectionLost,
+    useSSL:loc.useSSL,
+    //reconnect:true
+  }
 
-  client.connect({onSuccess:onConnect, userName:username, password:password});
+  setStatus("Connecting...");
+  client.connect(options);
 
 }
 
@@ -32,10 +51,12 @@ function onConnect() {
   // let message = new Paho.MQTT.Message("Hello");
   // message.destinationName = "World";
   // client.send(message);
+  setStatus("Connected");
 }
 
 // called when the client loses its connection
-function onConnectionLost(responseObject) {
+function onConnectionLost(responseObject) {  
+  setStatus(`Connection lost: ${responseObject.errorMessage}`);
   if (responseObject.errorCode !== 0) {
     console.log("onConnectionLost:"+responseObject.errorMessage);
   }
@@ -43,12 +64,11 @@ function onConnectionLost(responseObject) {
 
 // called when a message arrives
 function onMessageArrived(message) {
-  console.log("onMessageArrived:"+message.payloadString);
+  console.log("onMessageArrived:",message.payloadString);
   console.log(message)
   console.log("Destionation", message.destinationName);
   console.log("QoS", message.qos);
-  console.log("Retrained", message.retained);
-  
+  console.log("retained", message.retained);  
   console.log("Duplicate", message.duplicate);
 
   let out = document.getElementById("lastmessage");
