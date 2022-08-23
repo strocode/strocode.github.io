@@ -9,8 +9,8 @@ let loc = {
 // location poptions https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition
 const locationOptions = {
   enableHighAccuracy: true,
-  maximumAge: 3000, // milliseconds
-  timeout: 2700 // milliseconds
+  maximumAge: 1000, // milliseconds
+  timeout: 700 // milliseconds
 };
 
 
@@ -25,7 +25,8 @@ let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
 
 function locationSuccess(position) {
-  locationText.textContent = JSON.stringify(position);   
+  const c = position.coords;
+  locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
 }
 
 function locationError(error) {
