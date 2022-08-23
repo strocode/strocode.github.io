@@ -43,12 +43,11 @@ function locationSuccess(position) {
   } else {
     map.panTo(latlng);
   }
-  npositions += 1;
-
-}
   breadCrumbLine.addLatLng(latlng);
   locationCircle.setLatLng(latlng);
   locationCircle.setRadius(c.accuracy);
+
+  npositions += 1;
 }
 
 function locationError(error) {
