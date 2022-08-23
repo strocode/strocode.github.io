@@ -13,7 +13,7 @@ const locationOptions = {
   timeout: 700 // milliseconds
 };
 
-var zoomLevel = 19;
+var zoomLevel = 17;
 
 // Create a client instance
 let client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), "clientId");
