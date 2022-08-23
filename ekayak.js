@@ -24,8 +24,9 @@ client.onMessageArrived = onMessageArrived;
 
 let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
+let npositions = 0;
 
-var map = L.map('map').fitWorld().setZoom(zoomLevel);
+var map = L.map('map').fitWorld();
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
@@ -37,7 +38,14 @@ function locationSuccess(position) {
   const c = position.coords;
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
   const latlng = [c.latitude, c.longitude];
-  map.panTo(latlng);
+  if (npositions == 0) {
+    map.flyTo(latlng, zoomLevel);
+  } else {
+    map.panTo(latlng);
+  }
+  npositions += 1;
+
+}
   breadCrumbLine.addLatLng(latlng);
   locationCircle.setLatLng(latlng);
   locationCircle.setRadius(c.accuracy);
