@@ -6,23 +6,45 @@ let loc = {
     useSSL:true
 };
 
-//loc = {hostname:'freya.bannister.id.au',port:9001,useSSL:false};
-
+// location poptions https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition
+const locationOptions = {
+  enableHighAccuracy: true,
+  maximumAge: 3000, // milliseconds
+  timeout: 2700 // milliseconds
+};
 
 
 // Create a client instance
 let client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), "clientId");
-let statusText = document.getElementById("status");
-
-function setStatus(msg) {
-  statusText.innerText = msg;
-  console.log("Status changed:", msg);
-}
-
 
 // set callback handlers
 client.onConnectionLost = onConnectionLost;
 client.onMessageArrived = onMessageArrived;
+
+let statusText = document.getElementById("status");
+let locationText = document.getElementById("location")
+
+function locationSuccess(position) {
+  locationText.textContent = JSON.stringify(position);   
+}
+
+function locationError(error) {
+  locationText.textContent = `GEOLOCATION ERROR(${error.code}): ${error.message}`;
+}
+
+// setup geolocation
+if ('geolocation' in navigator) {
+  const watchID = navigator.geolocation.watchPosition(locationSuccess, locationError, locationOptions);
+} else {
+  locationText.textContent = "Geolocation not supported in this browser";
+}
+
+
+function setStatus(msg) {
+  statusText.textContent = msg;
+  console.log("Status changed:", msg);
+}
+
 
 function login() {
   let username = document.getElementById("username").value;
@@ -72,6 +94,6 @@ function onMessageArrived(message) {
   console.log("Duplicate", message.duplicate);
 
   let out = document.getElementById("lastmessage");
-  out.innerText = message.payloadString;
+  out.textContent = message.payloadString;
 
 }
