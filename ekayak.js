@@ -28,7 +28,7 @@ let npositions = 0;
 
 var map = L.map('map').fitWorld();
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: 21,
     attribution: '© OpenStreetMap'
 }).addTo(map);
 var breadCrumbLine = L.polyline([]).addTo(map);
@@ -39,7 +39,7 @@ function locationSuccess(position) {
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
   const latlng = [c.latitude, c.longitude];
   if (npositions == 0) {
-    map.flyTo(latlng, zoomLevel);
+    map.flyTo(latlng, Number(zoomLevel), {animate:true});
   } else {
     map.panTo(latlng);
   }
@@ -47,7 +47,7 @@ function locationSuccess(position) {
   locationCircle.setLatLng(latlng);
   locationCircle.setRadius(c.accuracy);
 
-  npositions += 1;
+  npositions = npositions + 1;
 }
 
 function locationError(error) {
