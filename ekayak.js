@@ -9,10 +9,11 @@ let loc = {
 // location poptions https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition
 const locationOptions = {
   enableHighAccuracy: true,
-  maximumAge: 1000, // milliseconds
+  maximumAge: 10000, // milliseconds
   timeout: 700 // milliseconds
 };
 
+var zoomLevel = 16;
 
 // Create a client instance
 let client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), "clientId");
@@ -24,9 +25,22 @@ client.onMessageArrived = onMessageArrived;
 let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
 
+var map = L.map('map').fitWorld();
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+var breadCrumbLine = L.polyline([]).addTo(map);
+var locationCircle = L.circle([0,0]).addTo(map);
+
 function locationSuccess(position) {
   const c = position.coords;
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
+  const latlng = [c.latitude, c.longitude];
+  map.setView(latlng, zoomLevel);
+  breadCrumbLine.addLatLng(latlng);
+  locationCircle.setLatLng(latlng);
+  locationCircle.setRadius(c.accuracy);
 }
 
 function locationError(error) {
