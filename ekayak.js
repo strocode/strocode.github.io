@@ -37,7 +37,7 @@ function locationSuccess(position) {
   const c = position.coords;
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
   const latlng = [c.latitude, c.longitude];
-  map.setView(latlng, zoomLevel);
+  map.panTo(latlng);
   breadCrumbLine.addLatLng(latlng);
   locationCircle.setLatLng(latlng);
   locationCircle.setRadius(c.accuracy);
