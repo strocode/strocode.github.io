@@ -39,8 +39,12 @@ function locationSuccess(position) {
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
   const latlng = [c.latitude, c.longitude];
   if (npositions == 0) {
-    map.flyTo(latlng, Number(zoomLevel), {animate:true});
+    console.log("Flying to", zoomLevel, latlng);
+    //map.flyTo(latlng, Number(zoomLevel), {animate:true}); // Flying takes too long and stops when the next location comes in
+    map.setView(latlng, zoomLevel);
+
   } else {
+    console.log("Panning to", latlng);
     map.panTo(latlng);
   }
   breadCrumbLine.addLatLng(latlng);
