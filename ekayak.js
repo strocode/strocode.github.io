@@ -25,7 +25,7 @@ client.onMessageArrived = onMessageArrived;
 let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
 
-var map = L.map('map').fitWorld();
+var map = L.map('map').fitWorld().setZoom(zoomLevel);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
