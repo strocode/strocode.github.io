@@ -34,17 +34,89 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 var breadCrumbLine = L.polyline([]).addTo(map);
 var locationCircle = L.circle([0,0]).addTo(map);
 
+
+// Create charts
+const temperatureData = {
+  labels: [],
+  datasets: [
+    {
+      label: 'Internal Temp',
+      data: [],
+      borderColor: 'rgba(54, 162, 235, 1)',
+      backgroundColor: 'rgba(54, 162, 235, 0.2)',
+      yAxisID: 'y',
+    },
+    {
+      label: 'External Temp',
+      data: [],
+      borderColor: 'rgba(0, 99, 182, 1)',
+      backgroundColor: 'rgba(0, 99, 182, 0.2)',
+      yAxisID: 'y',
+    },
+    {
+      label: 'Humidity',
+      data: [],
+      borderColor: 'rgba(255, 99, 132, 1)',
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      yAxisID: 'y1',
+    }
+  ]
+};
+
+const temperatureConfig = {
+  type: 'line',
+  data: temperatureData,
+  options: {
+    responsive: true,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    stacked: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Temperature & humidity'
+      }
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: {
+          display:true,
+          text: 'Temperature (deg)'
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display:true,
+          text: 'Relative humidity (%)'
+        },
+
+        // grid line settings
+        grid: {
+          drawOnChartArea: false, // only want the grid lines for one axis to show up
+        },
+      },
+    }
+  },
+};
+
+const temperatureChart = new Chart('temperatureChart', temperatureConfig);
+
 function locationSuccess(position) {
   const c = position.coords;
   locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
   const latlng = [c.latitude, c.longitude];
   if (npositions == 0) {
-    console.log("Flying to", zoomLevel, latlng);
     //map.flyTo(latlng, Number(zoomLevel), {animate:true}); // Flying takes too long and stops when the next location comes in
     map.setView(latlng, zoomLevel);
-
   } else {
-    console.log("Panning to", latlng);
     map.panTo(latlng);
   }
   breadCrumbLine.addLatLng(latlng);
@@ -111,6 +183,7 @@ function onConnectionLost(responseObject) {
 }
 
 // called when a message arrives
+let nmsg = 0;
 function onMessageArrived(message) {
   console.log("onMessageArrived:",message.payloadString);
   console.log(message)
@@ -121,5 +194,15 @@ function onMessageArrived(message) {
 
   let out = document.getElementById("lastmessage");
   out.textContent = message.payloadString;
+
+  let data = JSON.parse(message.payloadString);
+  
+  temperatureConfig.data.labels.push(nmsg);
+  temperatureConfig.data.datasets[0].data.push(data.internal_temp);
+  temperatureConfig.data.datasets[1].data.push(data.external_temp);
+  temperatureConfig.data.datasets[2].data.push(data.relative_humidity);
+  temperatureChart.update();
+
+  nmsg += 1;  
 
 }
