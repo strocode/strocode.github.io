@@ -63,6 +63,27 @@ const temperatureData = {
   ]
 };
 
+const locationData = {
+  labels: [],
+  datasets: [
+    {
+      label: 'Speed',
+      data: [],
+      borderColor: 'rgba(54, 162, 235, 1)',
+      backgroundColor: 'rgba(54, 162, 235, 0.2)',
+      yAxisID: 'y',
+    },
+    {
+      label: 'Heading',
+      data: [],
+      borderColor: 'rgba(255, 99, 132, 1)',
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      yAxisID: 'y1',
+    }
+  ]
+};
+
+
 const temperatureConfig = {
   type: 'line',
   data: temperatureData,
@@ -107,7 +128,70 @@ const temperatureConfig = {
   },
 };
 
+
+const locationConfig = {
+  type: 'line',
+  data: locationData,
+  options: {
+    responsive: true,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    stacked: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Location'
+      }
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: {
+          display:true,
+          text: 'Speed (m/s)'
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display:true,
+          text: 'Heading (deg)'
+        },
+
+        // grid line settings
+        grid: {
+          drawOnChartArea: false, // only want the grid lines for one axis to show up
+        },
+      },
+    }
+  },
+};
+
 const temperatureChart = new Chart('temperatureChart', temperatureConfig);
+const locationChart = new Chart('locationChart', locationConfig);
+
+// Chart update functions: https://www.chartjs.org/docs/latest/developers/updates.html
+function addData(chart, label, data) {
+  chart.data.labels.push(label);
+  chart.data.datasets.forEach((dataset, i) => {
+      dataset.data.push(data[i]);
+  });
+  chart.update();
+}
+
+function removeData(chart) {
+  chart.data.labels.pop();
+  chart.data.datasets.forEach((dataset) => {
+      dataset.data.pop();
+  });
+  chart.update();
+}
 
 function locationSuccess(position) {
   const c = position.coords;
@@ -124,6 +208,8 @@ function locationSuccess(position) {
   locationCircle.setRadius(c.accuracy);
 
   npositions = npositions + 1;
+  addData(locationChart, npositions, [c.speed, c.heading])
+  
 }
 
 function locationError(error) {
@@ -197,12 +283,8 @@ function onMessageArrived(message) {
 
   let data = JSON.parse(message.payloadString);
   
-  temperatureConfig.data.labels.push(nmsg);
-  temperatureConfig.data.datasets[0].data.push(data.internal_temp);
-  temperatureConfig.data.datasets[1].data.push(data.external_temp);
-  temperatureConfig.data.datasets[2].data.push(data.relative_humidity);
-  temperatureChart.update();
-
+  addData(temperatureChart, nmsg, [data.internal_temp, data.external_temp, data.relative_humidity])
+  
   nmsg += 1;  
 
 }
