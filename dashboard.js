@@ -312,6 +312,8 @@ function locationSuccess(position) {
 
   $('#gps_speed').html(`${Math.round(c.speed * 36)/10} km/h`);
   $('#current_trip').html('0 km');
+  $('#debug_logs').append(`lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`);
+  $('#debug_logs').append(`<br>${Math.round(c.speed * 36)/10} km/h`);
 
   addData(locationChart, npositions, [c.speed, c.heading])
   
