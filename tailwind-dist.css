@@ -2014,6 +2014,10 @@ select {
     max-width: 80rem;
   }
 
+  .lg\:max-w-lg {
+    max-width: 32rem;
+  }
+
   .lg\:items-center {
     align-items: center;
   }

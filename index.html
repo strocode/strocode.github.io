@@ -1,5 +1,5 @@
 <!DOCTYPE html> 
-<html lang="en">
+<html lang="en" class = "h-full bg-gray-50">
   <head>
     <title></title>
 
@@ -12,11 +12,11 @@
   </head> 
 
 
-  <body >
+  <body class="h-full">
 
     <div x-data="{ tab: 'map', mobileMenuOpen: false, showLogin: true,}">
 
-      <div x-show = "!showLogin" class="min-h-full">
+      <div x-show = "!showLogin" class="">
 
         <nav class="bg-white border-b border-gray-200">
           <div class="max-w-7xl mx-auto px-4 lg:px-6 lg:px-8">
@@ -124,26 +124,6 @@
                   <div :class="{ 'hidden' : mobileMenuOpen}" class="absolute inset-x-0 top-4 lg:top-20 h-16 flex items-center justify-center">
                     <div class = "text-3xl flex flex-row bg-white gap-y-4 gap-x-10 px-8 pt-3 pb-1 rounded-md z-20">
 
-  <!--                     <div x-data="{battery_voltage: ''}" class = "flex flex-col">
-                        <h3 class="text-xs mb-2 uppercase"> Voltage</h3>
-                        <span class="text-2xl" x-text="battery_voltage"> </span>
-                      </div>
-
-                      <div  x-data="{controller_temp: ''}"  class = "flex flex-col">
-                        <h3 class="text-xs mb-2 uppercase"> Temp</h3>
-                        <span class="text-2xl" x-text="controller_temp"></span>
-                      </div>
-
-                      <div  x-data="{current_trip: ''}"  class = "flex flex-col">
-                        <h3 class="text-xs mb-2 uppercase"> Trip</h3>
-                        <span class="text-2xl" x-text="current_trip"> </span>
-                      </div>
-
-                      <div  x-data="{gps_speed: ''}"  class = "flex flex-col">
-                        <h3 class="text-xs mb-2 uppercase"> Speed</h3>
-                        <span class="text-2xl" x-text="gps_speed"> </span>
-                      </div>   -->                                  
-
 
                       <div class = "flex flex-col">
                         <h3 class="text-xs mb-2 uppercase"> Voltage</h3>
@@ -228,22 +208,9 @@
 
 
 
-
-
-
-
-<!--
-  This example requires updating your template:
-
-  ```
-  <html class="h-full bg-gray-50">
-  <body class="h-full">
-  ```
--->
-
       <div x-show="showLogin" class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
 
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="mt-8 sm:mx-auto sm:w-full lg:max-w-lg">
           <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <form class="space-y-6" action="#" method="POST">
               <div>
