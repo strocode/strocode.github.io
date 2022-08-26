@@ -87,8 +87,8 @@ function onConnect() {
   // mqtt_client.send(message);
   // setStatus("Connected");
   $('#debug_logs').append("MQTT Client Connected!");
-  $('#login_icon').removeClass('text-red-500');
-  $('#login_icon').addClass('text-green-500');
+  $('.login_icon').removeClass('text-red-500');
+  $('.login_icon').addClass('text-green-500');
 }
 
 // called when the mqtt_client loses its connection
@@ -98,8 +98,8 @@ function onConnectionLost(responseObject) {
     console.log("onConnectionLost:"+responseObject.errorMessage);
   }
   $('#debug_logs').append("onConnectionLost:"+responseObject.errorMessage);
-  $('#login_icon').removeClass('text-green-500');
-  $('#login_icon').addClass('text-red-500');
+  $('.login_icon').removeClass('text-green-500');
+  $('.login_icon').addClass('text-red-500');
 }
 
 
