@@ -310,7 +310,7 @@ function locationSuccess(position) {
 
   npositions = npositions + 1;
 
-  $('#gps_speed').html(c.speed);
+  $('#gps_speed').html(`${Math.round(c.speed * 36)/10} km/h`);
   $('#current_trip').html('0 km');
 
   addData(locationChart, npositions, [c.speed, c.heading])
