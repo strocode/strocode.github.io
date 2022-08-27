@@ -118,7 +118,7 @@ function onMessageArrived(message) {
 
   let data = JSON.parse(message.payloadString);
   
-  addData(temperatureChart, mqtt_message_count, [data.internal_temp, data.external_temp, data.relative_humidity])
+  addData(temperatureChart, mqtt_message_count, [data.internal_temp, data.external_temp, data.esc_temp, data.relative_humidity])
 
   $('#battery_voltage').html(`${data.battery_voltage} V`);
   $('#controller_temp').html(`${data.esc_temp} Deg.`);
@@ -161,6 +161,13 @@ function temp_chart_init() {
         yAxisID: 'y',
       },
       {
+        label: 'ESC Temp',
+        data: [],
+        borderColor: 'rgba(89, 150, 182, 1)',
+        backgroundColor: 'rgba(89, 99, 182, 0.2)',
+        yAxisID: 'y',
+      },
+      {
         label: 'Humidity',
         data: [],
         borderColor: 'rgba(255, 99, 132, 1)',
@@ -169,7 +176,6 @@ function temp_chart_init() {
       }
     ]
   };
-
 
   const temperatureConfig = {
     type: 'line',
