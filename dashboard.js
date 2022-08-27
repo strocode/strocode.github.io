@@ -120,9 +120,12 @@ function onMessageArrived(message) {
   
   addData(temperatureChart, mqtt_message_count, [data.internal_temp, data.external_temp, data.esc_temp, data.relative_humidity])
 
-  $('#battery_voltage').html(`${data.battery_voltage} V`);
-  $('#controller_temp').html(`${data.esc_temp} Deg.`);
-  $('#rpm').html(`${data.rpm} RPM`);
+  let voltStr = data.battery_voltage.toFixed(1) + ' V';
+  let tempStr = data.esc_temp.toFixed(1) + ' Deg.';
+  let rpmStr = data.rpm.toFixed(0);
+  $('#battery_voltage').html(voltStr);
+  $('#controller_temp').html(tempStr);
+  $('#rpm').html(rpmStr);
 
   mqtt_message_count += 1;  
 
