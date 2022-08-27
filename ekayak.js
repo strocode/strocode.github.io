@@ -54,6 +54,13 @@ const temperatureData = {
       yAxisID: 'y',
     },
     {
+      label: 'ESC Temp',
+      data: [],
+      borderColor: 'rgba(89, 150, 182, 1)',
+      backgroundColor: 'rgba(89, 99, 182, 0.2)',
+      yAxisID: 'y',
+    },
+    {
       label: 'Humidity',
       data: [],
       borderColor: 'rgba(255, 99, 132, 1)',
@@ -283,7 +290,7 @@ function onMessageArrived(message) {
 
   let data = JSON.parse(message.payloadString);
   
-  addData(temperatureChart, nmsg, [data.internal_temp, data.external_temp, data.relative_humidity])
+  addData(temperatureChart, nmsg, [data.internal_temp, data.external_temp, data.esc_temp, data.relative_humidity])
   
   nmsg += 1;  
 
