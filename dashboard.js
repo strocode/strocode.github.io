@@ -14,16 +14,16 @@ const locationOptions = {
 };
 
 var zoomLevel = 17;
-
 var mqtt_client, map, breadCrumbLine, locationCircle, locationChart, temperatureChart;
-
 var mqtt_message_count = 0;
-
-
 let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
-
 let npositions = 0;
+var connectOptions = {};
+let positionUserName = "keith"; // If you get a position from mqtt topic position/$user then update the UI with that position
+let userLastPositions = {}; // dictionary of most recent posObj keyed by user name
+// make this null if you want to use your local position measurementes
+// TODO: Make this configurable in the UI
 
 
 function dashboard_init() {
@@ -36,7 +36,6 @@ function dashboard_init() {
 
 
 }
-
 
 
 function mqtt_init() {
@@ -60,7 +59,7 @@ function mqtt_login() {
   let username = document.getElementById("username").value;
   let password = document.getElementById("password").value;
   // For more options, see here: https://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
-  let options = {
+  connectOptions = {
     timeout:3,
     userName:username,
     password:password,
@@ -72,7 +71,7 @@ function mqtt_login() {
 
   // setStatus("Connecting...");
   $('#debug_logs').append("MQTT Client connecting...");
-  mqtt_client.connect(options);
+  mqtt_client.connect(connectOptions);
   return false
 
 }
@@ -82,10 +81,8 @@ function onConnect() {
   // Once a connection has been made, make a subscription and send a message.
   console.log("onConnect");
   mqtt_client.subscribe("ekayak");
-  // let message = new Paho.MQTT.Message("Hello");
-  // message.destinationName = "World";
-  // mqtt_client.send(message);
-  // setStatus("Connected");
+  mqtt_client.subscribe("position/+"); // subscribe to all users sending positions
+  
   $('#debug_logs').append("MQTT Client Connected!");
   $('.login_icon').removeClass('text-red-500');
   $('.login_icon').addClass('text-green-500');
@@ -103,11 +100,32 @@ function onConnectionLost(responseObject) {
 }
 
 
+function updateTelemetry(data) {
+  addData(temperatureChart, mqtt_message_count, [data.internal_temp, data.external_temp, data.esc_temp, data.relative_humidity])
+
+  let voltStr = data.battery_voltage.toFixed(1) + ' V';
+  let tempStr = data.esc_temp.toFixed(1) + ' Deg.';
+  let rpmStr = data.rpm.toFixed(0);
+  $('#battery_voltage').html(voltStr);
+  $('#controller_temp').html(tempStr);
+  $('#rpm').html(rpmStr);
+}
+
+function updateUserPosition(sendingUser, posobj) {
+  // called a position received from a sendingUser
+  // may or may not be a new user
+  
+  userLastPositions[sendingUser] = posobj;
+  console.log("Got position from ", sendingUser, posobj, Object.keys(userLastPositions));
+
+  // TODO: Update UI so our user can choose which person to display positionUserNames - could even use distances
+
+}
 
 function onMessageArrived(message) {
   console.log("onMessageArrived:",message.payloadString);
   console.log(message)
-  console.log("Destionation", message.destinationName);
+  console.log("Destination", message.destinationName);
   console.log("QoS", message.qos);
   console.log("retained", message.retained);  
   console.log("Duplicate", message.duplicate);
@@ -117,21 +135,24 @@ function onMessageArrived(message) {
   $('#debug_logs').append(message.payloadString);
 
   let data = JSON.parse(message.payloadString);
-  
-  addData(temperatureChart, mqtt_message_count, [data.internal_temp, data.external_temp, data.esc_temp, data.relative_humidity])
+  const destName = message.destinationName;
 
-  let voltStr = data.battery_voltage.toFixed(1) + ' V';
-  let tempStr = data.esc_temp.toFixed(1) + ' Deg.';
-  let rpmStr = data.rpm.toFixed(0);
-  $('#battery_voltage').html(voltStr);
-  $('#controller_temp').html(tempStr);
-  $('#rpm').html(rpmStr);
+  if (destName == "ekayak") {
+    updateTelemetry(data);
+  } else if (destName.startsWith("position/")) {
+    const sendingUser = destName.split("/")[1];
+    updateUserPosition(sendingUser, data);
+
+    if (sendingUser == positionUserName) {
+      updatePosition(data);
+    }
+  }
+  
+ 
 
   mqtt_message_count += 1;  
 
 }
-
-
 
 
 function map_init() {
@@ -301,18 +322,31 @@ function location_chart_init() {
 
 }
 
+function positionToObject(position) {
+    // JSON can't serialise the position data for some reason - so make our own
 
-
-
-function locationSuccess(position) {
   const c = position.coords;
-  // locationText.textContent = `lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`;
+
+  let positionObj = {latitude:c.latitude,
+  longitude:c.longitude,
+  accuracy:c.accuracy,
+  speed:c.speed,
+  heading:c.heading,
+  altitude:c.altitude,
+  altitudeAccuracy:c.altitudeAccuracy,
+  timestamp:position.timestamp};
+
+  return positionObj;
+}
+
+function updatePosition(positionObj) {
+  const c = positionObj;
   const latlng = [c.latitude, c.longitude];
   if (npositions == 0) {
     //map.flyTo(latlng, Number(zoomLevel), {animate:true}); // Flying takes too long and stops when the next location comes in
-    map.setView(latlng, zoomLevel);
+    map.setView(latlng, zoomLevel); // Set zoom level the first time as we started in world view
   } else {
-    map.panTo(latlng);
+    map.panTo(latlng); // user might use UI to change zoom level - don't want to set back to default
   }
   breadCrumbLine.addLatLng(latlng);
   locationCircle.setLatLng(latlng);
@@ -322,11 +356,32 @@ function locationSuccess(position) {
 
   $('#gps_speed').html(`${Math.round(c.speed * 36)/10} km/h`);
   $('#current_trip').html('0 km');
-  $('#debug_logs').append(`lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${position.timestamp}`);
+  $('#debug_logs').append(`lat/long:${c.latitude}/${c.longitude} speed:${c.speed} heading:${c.heading} altitude:${c.altitude} accuracy:${c.accuracy} altaccuracy:${c.altitudeAccuracy} timestamp:${c.timestamp}`);
   $('#debug_logs').append(`<br>${Math.round(c.speed * 36)/10} km/h`);
 
   addData(locationChart, npositions, [c.speed, c.heading])
+}
+
+
+function locationSuccess(position) {
   
+  const posobj = positionToObject(position);
+
+  if (positionUserName === null) { // update UI if we're not using positions from MQTT
+    updatePosition(posobj); // update UI
+
+  }
+
+  // send data to mqtt
+  const payload = JSON.stringify(posobj);
+  const topic = 'position/'+connectOptions.userName;
+  const qos = 0; // best effort
+  const retained = true; // Let new subscribers know our last position as soon as they subscribe
+  try { 
+    mqtt_client.send(topic, payload, qos, retained);
+  } catch (invalidState) {
+    // Client isn't connected. Oh well. Don't really care I don't think.
+  }
 }
 
 function locationError(error) {
@@ -360,9 +415,6 @@ function removeData(chart) {
   });
   chart.update();
 }
-
-
-
 
 // On Apline ready
 document.addEventListener('alpine:init', () => {
