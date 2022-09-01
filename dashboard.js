@@ -27,8 +27,7 @@ let userLastPositions = {}; // dictionary of most recent posObj keyed by user na
 
 
 function dashboard_init() {
-
-  mqtt_init();
+  
   map_init();
 
   temp_chart_init();
@@ -60,7 +59,7 @@ function mqtt_login() {
   let password = document.getElementById("password").value;
   // For more options, see here: https://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
   connectOptions = {
-    timeout:3,
+    timeout:30,
     userName:username,
     password:password,
     onSuccess:onConnect,
@@ -71,6 +70,14 @@ function mqtt_login() {
 
   // setStatus("Connecting...");
   $('#debug_logs').append("MQTT Client connecting...");
+
+  const clientId = username;
+  // Create a client instance
+  mqtt_client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), clientId);
+
+  // set callback handlers
+  mqtt_client.onConnectionLost = onConnectionLost;
+  mqtt_client.onMessageArrived = onMessageArrived;
   mqtt_client.connect(connectOptions);
   return false
 
