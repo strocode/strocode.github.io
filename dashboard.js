@@ -29,23 +29,10 @@ let userLastPositions = {}; // dictionary of most recent posObj keyed by user na
 function dashboard_init() {
   
   map_init();
-
   temp_chart_init();
   location_chart_init();
 
-
 }
-
-
-function mqtt_init() {
-  // Create a client instance
-  mqtt_client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), "clientId");
-
-  // set callback handlers
-  mqtt_client.onConnectionLost = onConnectionLost;
-  mqtt_client.onMessageArrived = onMessageArrived;
-}
-
 
 
 function setStatus(msg) {
@@ -71,7 +58,11 @@ function mqtt_login() {
   // setStatus("Connecting...");
   $('#debug_logs').append("MQTT Client connecting...");
 
-  const clientId = username;
+  //  Make a unique-ish, random client ID
+  const randint = Math.floor(Math.random()*1024*1024);
+  // Client ID must be unique otherwise it disconnects the other client.
+  const clientId = `${username}-${randint}`;
+  
   // Create a client instance
   mqtt_client = new Paho.MQTT.Client(loc.hostname, Number(loc.port), clientId);
 
