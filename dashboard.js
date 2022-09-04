@@ -20,7 +20,7 @@ let statusText = document.getElementById("status");
 let locationText = document.getElementById("location")
 let npositions = 0;
 var connectOptions = {};
-let positionUserName = "keith"; // If you get a position from mqtt topic position/$user then update the UI with that position
+let positionUserName = null; // If you get a position from mqtt topic position/$user then update the UI with that position
 let userLastPositions = {}; // dictionary of most recent posObj keyed by user name
 // make this null if you want to use your local position measurementes
 // TODO: Make this configurable in the UI
@@ -61,6 +61,8 @@ function mqtt_login() {
   //  Make a unique-ish, random client ID
   const randint = Math.floor(Math.random()*1024*1024);
   // Client ID must be unique otherwise it disconnects the other client.
+  // Ah wait, but "It is only used to identify the client to the broker when the connection is established in order to determine if stored messages and persistent subscriptions should be honoured.
+  // Hmm, not sure if we want unique ones or not.
   const clientId = `${username}-${randint}`;
   
   // Create a client instance
@@ -112,12 +114,31 @@ function updateTelemetry(data) {
 function updateUserPosition(sendingUser, posobj) {
   // called a position received from a sendingUser
   // may or may not be a new user
-  
+
+  const locationUserList = document.getElementById('locationUser');
+  var $el = $('#locationUser');
+
+  // Add new user to list 
+  if (!(sendingUser in userLastPositions)) {
+    $el.append($("<option></option>")
+    .attr("value", sendingUser).text(sendingUser));
+  }
+
+  // update list of sending locations
   userLastPositions[sendingUser] = posobj;
-  console.log("Got position from ", sendingUser, posobj, Object.keys(userLastPositions));
+}
 
-  // TODO: Update UI so our user can choose which person to display positionUserNames - could even use distances
-
+function locationUserChanged() {
+  var newUserName = document.getElementById("locationUser").value;
+  if (newUserName == '') {
+    newUserName = null;
+  }
+  positionUserName = newUserName; // Update position user global variable
+  const userLocation = userLastPositions[newUserName];
+  console.log('Location user changed to', newUserName, userLocation);
+  clearData(locationChart); // clear chart
+  breadCrumbLine.setLatLngs([]); // clear breadcrumbs on map
+  updatePosition(userLocation);  // Add new latest value
 }
 
 function onMessageArrived(message) {
@@ -146,8 +167,6 @@ function onMessageArrived(message) {
     }
   }
   
- 
-
   mqtt_message_count += 1;  
 
 }
@@ -365,9 +384,11 @@ function locationSuccess(position) {
   
   const posobj = positionToObject(position);
 
+  // Always save the current location to the null user
+  userLastPositions[null] = posobj;
+
   if (positionUserName === null) { // update UI if we're not using positions from MQTT
     updatePosition(posobj); // update UI
-
   }
 
   // send data to mqtt
@@ -410,6 +431,14 @@ function removeData(chart) {
   chart.data.labels.pop();
   chart.data.datasets.forEach((dataset) => {
       dataset.data.pop();
+  });
+  chart.update();
+}
+
+function clearData(chart) {
+  chart.data.labels.length = 0;
+  chart.data.datasets.forEach((dataset) => {
+      dataset.data.length = 0;
   });
   chart.update();
 }
